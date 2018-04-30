@@ -29,6 +29,7 @@ from numpy import *
 from paramio import *
 from xap_funs import *
 from crates_contrib.utils import *
+import stk
 
 # Get Inputs from parameter file:
 
@@ -38,42 +39,38 @@ evtfile=pget(fp,"infile")
 outfile=pget(fp,"outfile")
 breg=pget(fp,"breg")
 srcstack=pget(fp,"srcstack")
-scr=read_file(srcstack)
-sregs=get_colvals(scr,0)
+psfstack=pget(fp,"psfstack")
+expstack=pget(fp,"expstack")
+CL_desired=pgetd(fp,"CL")
+intenstack=pget(fp,"intenstack")
+nmesh=pgeti(fp,"nmesh")
+clob=pgetb(fp,"clobber")
+verb=pgeti(fp,"verbose")
+paramclose(fp)
+
+
+
+sregs=stk.build("@"+srcstack)
 
 # Read psfstack and test for null values
-
 psfs = array([])
-psfstack=pget(fp,"psfstack")
 try:
-    pcr=read_file(psfstack)
-    psfs=get_colvals(pcr,0)
+    psfs=stk.build("@"+psfstack)
 except:
     print("Unable to find PSF files.\nSetting source region ecfs to 1.0\n and background ecf to 0.0\n")
 
 # Read expstack and test for null values
-
 exps = array([])
-expstack=pget(fp,"expstack")
 try:
-    ecr=read_file(expstack)
-    exps=get_colvals(ecr,0)
+    exps=stk.build("@"+expstack)
 except:
     print("Unable to find exposure maps.\nOutput units will be \"counts/sec\".\n")
 
 #if len(sregs) != len(psfs):
 #    print "Error: Source and PSF Stacks Inconsistent"
 
-CL_desired   = pgetd(fp,"CL")
-intenstack = pget(fp,"intenstack")
-nmesh        = pgeti(fp,"nmesh")
-clob         = pgetb(fp,"clobber")
-verb         = pgeti(fp,"verbose")
-
-paramclose(fp)
 
 # Get EXPOSURE from event list header
-
 exposure = 1.0
 try:
     exposure= get_keyval(read_file(evtfile),'exposure')
@@ -147,7 +144,6 @@ smesh = ix_(*svecs)                            # Reshape svecs for broadcasting
 print("\nBuilding Priors.....")
 
 # Try to read stack of intensities and variances for Source/Background Gamma PRior Distributions
-
 try:
     
     # If a stack of intens and variances were input, use them to compute means and vairances of aperture counts (theta's), and use those
