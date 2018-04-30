@@ -18,7 +18,7 @@ def info(type, value, tb):
       import traceback, pdb
       # we are NOT in interactive mode, print the exception...
       traceback.print_exception(type, value, tb)
-      print
+      print()
       # ...then start the debugger in post-mortem mode.
       pdb.pm()
 
@@ -49,7 +49,7 @@ try:
     pcr=read_file(psfstack)
     psfs=get_colvals(pcr,0)
 except:
-    print "Unable to find PSF files.\nSetting source region ecfs to 1.0\n and background ecf to 0.0\n"
+    print("Unable to find PSF files.\nSetting source region ecfs to 1.0\n and background ecf to 0.0\n")
 
 # Read expstack and test for null values
 
@@ -59,7 +59,7 @@ try:
     ecr=read_file(expstack)
     exps=get_colvals(ecr,0)
 except:
-    print "Unable to find exposure maps.\nOutput units will be \"counts/sec\".\n"
+    print("Unable to find exposure maps.\nOutput units will be \"counts/sec\".\n")
 
 #if len(sregs) != len(psfs):
 #    print "Error: Source and PSF Stacks Inconsistent"
@@ -78,7 +78,7 @@ exposure = 1.0
 try:
     exposure= get_keyval(read_file(evtfile),'exposure')
 except:
-    print "Unable to find EXPOSURE keyword in header to %s\nOutput units will be \"counts\"." % evtfile
+    print("Unable to find EXPOSURE keyword in header to %s\nOutput units will be \"counts\"." % evtfile)
 
 # Get MJD_OBS from event list header
 
@@ -86,23 +86,23 @@ mjdobs = -1.0
 try:
     mjdobs= get_keyval(read_file(evtfile),'MJD_OBS')
 except:
-    print "Unable to find MJD_OBS keyword in header to %s\nObservation Time will be set to -1.0" % evtfile
+    print("Unable to find MJD_OBS keyword in header to %s\nObservation Time will be set to -1.0" % evtfile)
 
 if verb>0:
-    print "Getting Events from %s\n" % evtfile
-    print "Exposure:\t%f" % exposure
-    print "Output results to %s\n" % outfile
-    print "Source Regions:"
+    print("Getting Events from %s\n" % evtfile)
+    print("Exposure:\t%f" % exposure)
+    print("Output results to %s\n" % outfile)
+    print("Source Regions:")
     for i in arange(0,len(sregs)):
-        print sregs[i]
+        print(sregs[i])
 
-    print "\nBackground Regions:"
-    print breg
-    print "\nPSF Images:"
+    print("\nBackground Regions:")
+    print(breg)
+    print("\nPSF Images:")
         
     for i in arange(0,len(psfs)):
-        print psfs[i]
-    print "\n"
+        print(psfs[i])
+    print("\n")
 
 # Now set up F and C arrays:
 
@@ -113,13 +113,13 @@ number_of_sources = number_of_params -1        # Number of sources only
 
 if verb>0:
     for i in arange(0,number_of_sources):
-        print "Counts in Region %d:\t\t%f" % (i,C[i])
+        print("Counts in Region %d:\t\t%f" % (i,C[i]))
 
-    print "\nCounts in Background Region:\t%f" % C[number_of_sources]
+    print("\nCounts in Background Region:\t%f" % C[number_of_sources])
 
-    print "\nF:"
-    print F
-    print "\n"
+    print("\nF:")
+    print(F)
+    print("\n")
 
 # Solve for MLE intensities and errors:
 
@@ -138,13 +138,13 @@ for i in arange(0,number_of_params):
     stemp,ds[i] = sgrid(s[i],sigma_s[i])
     svecs.append(stemp)
     if(verb>0):
-        print "Source %d:\tMesh Length: %d" % (i,len(stemp))
+        print("Source %d:\tMesh Length: %d" % (i,len(stemp)))
 
 smesh = ix_(*svecs)                            # Reshape svecs for broadcasting  
 
 # Set up Prior Distributions
 
-print "\nBuilding Priors....."
+print("\nBuilding Priors.....")
 
 # Try to read stack of intensities and variances for Source/Background Gamma PRior Distributions
 
@@ -159,29 +159,29 @@ try:
     theta_mean = zeros(number_of_params)
     theta_var  = zeros(number_of_params)
 
-    print "\nMeans and Variances of counts for each aperture"
+    print("\nMeans and Variances of counts for each aperture")
 
     for i in range(0,number_of_params):
         for j in range(0,number_of_params):
             theta_mean[i] = theta_mean[i] + F[i,j]*s_mean[j]
             theta_var[i] = theta_var[i] + F[i,j]*F[i,j]*s_var[j]
-        print "%e\t%e" % (theta_mean[i],theta_var[i])
+        print("%e\t%e" % (theta_mean[i],theta_var[i]))
 
     alphas = theta_mean*theta_mean/theta_var
     betas  = theta_mean/theta_var
 
-    print "Estimates for Prior Distribution Parameters:"
-    print "\nalpha    \tbeta"
-    print "-----    \t----"
+    print("Estimates for Prior Distribution Parameters:")
+    print("\nalpha    \tbeta")
+    print("-----    \t----")
     for i in range(0,number_of_params):
-        print "%9.3e\t%9.3e" % (alphas[i],betas[i])
+        print("%9.3e\t%9.3e" % (alphas[i],betas[i]))
 
 
 except:
 
     # Failed, so set to default uninformative priors
 
-    print "Using Non-informative Priors....."
+    print("Using Non-informative Priors.....")
     alphas = ones(len(sregs)+1)
     betas  = zeros(len(sregs)+1)
 
@@ -232,13 +232,13 @@ allcrates.append(tab)
 
 # First the sources, one per extension
 
-print "\t\t\t\tIntensity\tLower Bound\tUpper Bound"
-print "\t\t\t\t---------\t-----------\t-----------"
+print("\t\t\t\tIntensity\tLower Bound\tUpper Bound")
+print("\t\t\t\t---------\t-----------\t-----------")
 
 for i in range(number_of_sources):
     srcmode,slo,shi,CLreal,zmode,zCL=pdf_summary(svecs[i],mpdfs[i],CL_desired)
-    print "MLE   Estimate for Source %d =\t%e\t%e\t%e" % (i,s[i],s[i]-sigma_s[i],s[i]+sigma_s[i])
-    print "Bayes Estimate for Source %d =\t%e\t%e\t%e" % (i,srcmode,slo,shi)
+    print("MLE   Estimate for Source %d =\t%e\t%e\t%e" % (i,s[i],s[i]-sigma_s[i],s[i]+sigma_s[i]))
+    print("Bayes Estimate for Source %d =\t%e\t%e\t%e" % (i,srcmode,slo,shi))
 
     add_colvals(allcrates[i],'Inten',svecs[i])
     add_colvals(allcrates[i],'MargPDF',mpdfs[i])
@@ -258,8 +258,8 @@ for i in range(number_of_sources):
 # The last extension contains the background pdf
     
 srcmode,slo,shi,CLreal,zmode,zCL=pdf_summary(svecs[-1],mpdfs[-1],CL_desired)
-print "MLE   Estimate for Background =\t%e\t%e\t%e" % (s[-1],s[-1]-sigma_s[-1],s[-1]+sigma_s[-1])
-print "Bayes Estimate for Background =\t%e\t%e\t%e" % (srcmode,slo,shi)
+print("MLE   Estimate for Background =\t%e\t%e\t%e" % (s[-1],s[-1]-sigma_s[-1],s[-1]+sigma_s[-1]))
+print("Bayes Estimate for Background =\t%e\t%e\t%e" % (srcmode,slo,shi))
 
 add_colvals(allcrates[-1],'Inten',svecs[-1])
 add_colvals(allcrates[-1],'MargPDF',mpdfs[-1])
@@ -286,16 +286,16 @@ ds.write(outfile,clobber=clob)
 
 # Compute means and variances of individual source (or background) intensities
 
-print "\nEstimates of Means and Variances of Individual Sources"
-print "\ns_mean    \tVar(s)"
-print "------    \t------"
+print("\nEstimates of Means and Variances of Individual Sources")
+print("\ns_mean    \tVar(s)")
+print("------    \t------")
 
 s_mean = zeros(number_of_params)
 s_var  = zeros(number_of_params)
 
 for i in range(0,number_of_params):
     s_mean[i],s_var[i] = posterior_stats(svecs[i],mpdfs[i])
-    print "%10.4e\t%10.4e" % (s_mean[i],s_var[i])
+    print("%10.4e\t%10.4e" % (s_mean[i],s_var[i]))
 
 
 
